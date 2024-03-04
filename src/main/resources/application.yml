@@ -1,0 +1,93 @@
+# Metrics related configurations
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+resilience4j.circuitbreaker:
+  circuit-breaker-aspect-order: 1
+  instances:
+    backendA:
+      registerHealthIndicator: true
+      slidingWindowSize: 5 # Set to a small window for demo. For live use a larger window (e.g. 100)
+#    backendB:
+#      registerHealthIndicator: true
+#      slidingWindowSize: 10
+#      permittedNumberOfCallsInHalfOpenState: 3
+#      slidingWindowType: TIME_BASED
+#      minimumNumberOfCalls: 20
+#      waitDurationInOpenState: 50s
+#      failureRateThreshold: 50
+#      eventConsumerBufferSize: 10
+#      recordFailurePredicate: io.github.robwin.exception.RecordFailurePredicate
+
+resilience4j.retry:
+  retry-aspect-order: 2
+  instances:
+    backendA:
+      maxAttempts: 2 # Set to a small number of attempts for demo. For live use a slightly larger value (e.g. 3)
+      waitDuration: 2s # Set to a short duration for demo. For live use a somewhat larger value (e.g. 10s)
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - org.springframework.web.reactive.function.client.WebClientResponseException
+        - java.io.IOException
+#      ignoreExceptions:
+#        - io.github.robwin.exception.BusinessException
+#    backendB:
+#      maxAttempts: 3
+#      waitDuration: 10s
+#      retryExceptions:
+#        - org.springframework.web.client.HttpServerErrorException
+#        - java.io.IOException
+#      ignoreExceptions:
+#        - io.github.robwin.exception.BusinessException
+
+resilience4j.bulkhead:
+  instances:
+    backendA:
+      maxConcurrentCalls: 10
+    backendB:
+      maxWaitDuration: 10ms
+      maxConcurrentCalls: 20
+
+resilience4j.thread-pool-bulkhead:
+  instances:
+    backendC:
+      maxThreadPoolSize: 1
+      coreThreadPoolSize: 1
+      queueCapacity: 1
+      writableStackTraceEnabled: true
+
+resilience4j.ratelimiter:
+  instances:
+    backendA:
+      limitForPeriod: 10
+      limitRefreshPeriod: 1s
+      timeoutDuration: 0
+      registerHealthIndicator: true
+      eventConsumerBufferSize: 100
+    backendB:
+      limitForPeriod: 6
+      limitRefreshPeriod: 500ms
+      timeoutDuration: 3s
+
+resilience4j.timelimiter:
+  instances:
+    backendA:
+      timeoutDuration: 2s
+      cancelRunningFuture: true
+    backendB:
+      timeoutDuration: 1s
+      cancelRunningFuture: false
